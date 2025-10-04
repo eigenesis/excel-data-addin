@@ -10,17 +10,17 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Data Extract Insert"/>
   <Description DefaultValue="Extract data from sheets and insert data automatically"/>
-  <IconUrl DefaultValue="https://localhost:3000/icon.html"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/icon.html"/>
-  <SupportUrl DefaultValue="https://localhost:3000"/>
+  <IconUrl DefaultValue="https://eigenesis.github.io/excel-data-addin/icon.html"/>
+  <HighResolutionIconUrl DefaultValue="https://eigenesis.github.io/excel-data-addin/icon.html"/>
+  <SupportUrl DefaultValue="https://eigenesis.github.io/excel-data-addin"/>
   <AppDomains>
-    <AppDomain>https://localhost:3000</AppDomain>
+    <AppDomain>https://eigenesis.github.io</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Workbook"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:3000/src/taskpane.html"/>
+    <SourceLocation DefaultValue="https://eigenesis.github.io/excel-data-addin/src/taskpane.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -65,13 +65,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:3000/icon.html"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:3000/icon.html"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/icon.html"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://eigenesis.github.io/excel-data-addin/icon.html"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://eigenesis.github.io/excel-data-addin/icon.html"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://eigenesis.github.io/excel-data-addin/icon.html"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://localhost:3000"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/src/taskpane.html"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://eigenesis.github.io/excel-data-addin"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://eigenesis.github.io/excel-data-addin/src/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Data Extract Insert"/>
