@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Extract & Insert</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #0078d4;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .radio-group {
+            margin: 10px 0;
+        }
+        .radio-group label {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <div class="section-title">📤 EXTRACT DATA</div>
+
+        <div class="radio-group">
+            <label><input type="radio" name="extractSource" value="sheet" checked> Current Sheet</label>
+            <label><input type="radio" name="extractSource" value="specific"> Specific Sheet</label>
+            <label><input type="radio" name="extractSource" value="range"> Range</label>
+            <label><input type="radio" name="extractSource" value="file"> File</label>
+        </div>
+
+        <div id="sheetOptions" class="hidden">
+            <label>Sheet Name:</label>
+            <input type="text" id="sheetName" placeholder="Enter sheet name">
+        </div>
+
+        <div id="rangeOptions" class="hidden">
+            <label>Range (e.g., A1:C10):</label>
+            <input type="text" id="rangeAddress" placeholder="A1:C10">
+        </div>
+
+        <div id="fileOptions" class="hidden">
+            <label>File Path:</label>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        </div>
+
+        <button id="extractBtn">Extract Data</button>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📥 INSERT DATA</div>
+
+        <label>Data to Insert (JSON format):</label>
+        <textarea id="insertData" rows="6" placeholder='[["Name","Age"],["John",30],["Jane",25]]'></textarea>
+
+        <label>Insert Location:</label>
+        <select id="insertLocation">
+            <option value="current">Current Selection</option>
+            <option value="newSheet">New Sheet</option>
+            <option value="specific">Specific Range</option>
+        </select>
+
+        <div id="insertRangeOptions" class="hidden">
+            <label>Target Range:</label>
+            <input type="text" id="insertRange" placeholder="A1">
+        </div>
+
+        <label>
+            <input type="checkbox" id="autoFormat"> Auto-format as table
+        </label>
+
+        <button id="insertBtn">Insert Data</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script src="taskpane.js"></script>
+</body>
+</html>
