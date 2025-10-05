@@ -6,130 +6,396 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Data Extract & Insert</title>
     <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
+        * {
             margin: 0;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #0078d4;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-        select, input, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
+            padding: 0;
             box-sizing: border-box;
         }
-        button {
-            background-color: #0078d4;
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            padding: 0;
+            margin: 0;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 3px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .section {
+            background: white;
+            margin-bottom: 20px;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 16px 20px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a202c;
+            letter-spacing: -0.3px;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #4a5568;
+            letter-spacing: -0.2px;
+        }
+
+        .radio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .radio-option {
+            position: relative;
+        }
+
+        .radio-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-option label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 13px;
+            color: #4a5568;
+            margin: 0;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .radio-option label:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select,
+        textarea {
             width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+            color: #2d3748;
         }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            background: #edf2f7;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-wrapper label {
+            margin: 0;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            color: #2d3748;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+            letter-spacing: 0.3px;
+        }
+
         button:hover {
-            background-color: #005a9e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
         }
+
+        button:active {
+            transform: translateY(0);
+        }
+
         #output {
+            background: white;
             margin-top: 20px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 3px;
-            min-height: 100px;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
+            color: #2d3748;
+            max-height: 300px;
+            overflow-y: auto;
         }
-        .radio-group {
-            margin: 10px 0;
-        }
-        .radio-group label {
-            display: inline-block;
-            margin-right: 15px;
-            font-weight: normal;
-        }
-        .hidden {
+
+        #output:empty {
             display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 20px 0;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section:nth-child(2) {
+            animation-delay: 0.1s;
         }
     </style>
 </head>
 <body>
-    <div class="section">
-        <div class="section-title">📤 EXTRACT DATA</div>
-
-        <div class="radio-group">
-            <label><input type="radio" name="extractSource" value="sheet" checked> Current Sheet</label>
-            <label><input type="radio" name="extractSource" value="specific"> Specific Sheet</label>
-            <label><input type="radio" name="extractSource" value="range"> Range</label>
-            <label><input type="radio" name="extractSource" value="file"> File</label>
-        </div>
-
-        <div id="sheetOptions" class="hidden">
-            <label>Sheet Name:</label>
-            <input type="text" id="sheetName" placeholder="Enter sheet name">
-        </div>
-
-        <div id="rangeOptions" class="hidden">
-            <label>Range (e.g., A1:C10):</label>
-            <input type="text" id="rangeAddress" placeholder="A1:C10">
-        </div>
-
-        <div id="fileOptions" class="hidden">
-            <label>File Path:</label>
-            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
-        </div>
-
-        <button id="extractBtn">Extract Data</button>
+    <div class="header">
+        <h1>Data Extract & Insert</h1>
+        <p>Professional data management for Excel</p>
     </div>
 
-    <div class="section">
-        <div class="section-title">📥 INSERT DATA</div>
+    <div class="container">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-icon">📤</span>
+                <span class="section-title">Extract Data</span>
+            </div>
+            <div class="section-body">
+                <div class="form-group">
+                    <label>Select Source</label>
+                    <div class="radio-grid">
+                        <div class="radio-option">
+                            <input type="radio" name="extractSource" value="sheet" id="opt-sheet" checked>
+                            <label for="opt-sheet">Current Sheet</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="extractSource" value="specific" id="opt-specific">
+                            <label for="opt-specific">Specific Sheet</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="extractSource" value="range" id="opt-range">
+                            <label for="opt-range">Range</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="extractSource" value="file" id="opt-file">
+                            <label for="opt-file">CSV File</label>
+                        </div>
+                    </div>
+                </div>
 
-        <label>Data to Insert (JSON format):</label>
-        <textarea id="insertData" rows="6" placeholder='[["Name","Age"],["John",30],["Jane",25]]'></textarea>
+                <div id="sheetOptions" class="form-group hidden">
+                    <label>Sheet Name</label>
+                    <input type="text" id="sheetName" placeholder="Enter sheet name">
+                </div>
 
-        <label>Insert Location:</label>
-        <select id="insertLocation">
-            <option value="current">Current Selection</option>
-            <option value="newSheet">New Sheet</option>
-            <option value="specific">Specific Range</option>
-        </select>
+                <div id="rangeOptions" class="form-group hidden">
+                    <label>Range Address</label>
+                    <input type="text" id="rangeAddress" placeholder="e.g., A1:C10">
+                </div>
 
-        <div id="insertRangeOptions" class="hidden">
-            <label>Target Range:</label>
-            <input type="text" id="insertRange" placeholder="A1">
+                <div id="fileOptions" class="form-group hidden">
+                    <label>Select CSV File</label>
+                    <input type="file" id="fileInput" accept=".csv">
+                </div>
+
+                <button id="extractBtn">Extract Data</button>
+            </div>
         </div>
 
-        <label>
-            <input type="checkbox" id="autoFormat"> Auto-format as table
-        </label>
+        <div class="section">
+            <div class="section-header">
+                <span class="section-icon">📥</span>
+                <span class="section-title">Insert Data</span>
+            </div>
+            <div class="section-body">
+                <div class="form-group">
+                    <label>Data to Insert (JSON format)</label>
+                    <textarea id="insertData" placeholder='[["Name","Age"],["John",30],["Jane",25]]'></textarea>
+                </div>
 
-        <button id="insertBtn">Insert Data</button>
+                <div class="form-group">
+                    <label>Insert Location</label>
+                    <select id="insertLocation">
+                        <option value="current">Current Selection</option>
+                        <option value="newSheet">New Sheet</option>
+                        <option value="specific">Specific Range</option>
+                    </select>
+                </div>
+
+                <div id="insertRangeOptions" class="form-group hidden">
+                    <label>Target Range</label>
+                    <input type="text" id="insertRange" placeholder="e.g., A1">
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="autoFormat">
+                        <label for="autoFormat">Auto-format as table</label>
+                    </div>
+                </div>
+
+                <button id="insertBtn">Insert Data</button>
+            </div>
+        </div>
+
+        <div id="output"></div>
     </div>
-
-    <div id="output"></div>
 
     <script src="taskpane.js"></script>
 </body>
