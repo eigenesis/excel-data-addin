@@ -97,14 +97,17 @@ async function extractData() {
 
       extractedData = range.values;
 
+      // Convert to contextual JSON with headers as keys
+      const contextualJSON = convertToContextualJSON(extractedData);
+
       const summary = `Extracted ${range.rowCount} rows x ${range.columnCount} columns from ${range.address}\n\n` +
-                     `Data preview:\n${JSON.stringify(extractedData.slice(0, 5), null, 2)}` +
-                     (extractedData.length > 5 ? '\n...(showing first 5 rows)' : '');
+                     `Data preview:\n${JSON.stringify(contextualJSON.slice(0, 3), null, 2)}` +
+                     (contextualJSON.length > 3 ? '\n...(showing first 3 records)' : '');
 
       showOutput(summary);
 
-      // Auto-populate insert textarea with extracted data
-      document.getElementById('insertData').value = JSON.stringify(extractedData, null, 2);
+      // Auto-populate insert textarea with contextual JSON
+      document.getElementById('insertData').value = JSON.stringify(contextualJSON, null, 2);
     });
 
   } catch (error) {
@@ -166,6 +169,32 @@ function parseCSV(text) {
   }).filter(row => row.some(cell => cell !== ''));
 }
 
+// Convert array-of-arrays to array-of-objects with headers as keys
+function convertToContextualJSON(arrayData) {
+  if (!arrayData || arrayData.length === 0) return [];
+
+  const headers = arrayData[0];
+  const rows = arrayData.slice(1);
+
+  return rows.map(row => {
+    const obj = {};
+    headers.forEach((header, index) => {
+      obj[header] = row[index];
+    });
+    return obj;
+  });
+}
+
+// Convert array-of-objects back to array-of-arrays for Excel insertion
+function convertFromContextualJSON(objectArray) {
+  if (!objectArray || objectArray.length === 0) return [];
+
+  const headers = Object.keys(objectArray[0]);
+  const rows = objectArray.map(obj => headers.map(header => obj[header]));
+
+  return [headers, ...rows];
+}
+
 async function insertData() {
   try {
     const dataText = document.getElementById('insertData').value;
@@ -178,13 +207,23 @@ async function insertData() {
     try {
       data = JSON.parse(dataText);
     } catch (e) {
-      showOutput('Error: Invalid JSON format. Expected format: [["col1","col2"],["val1","val2"]]');
+      showOutput('Error: Invalid JSON format');
       return;
     }
 
     if (!Array.isArray(data) || data.length === 0) {
       showOutput('Error: Data must be a non-empty array');
       return;
+    }
+
+    // Check if data is array of objects (contextual JSON) and convert if needed
+    let arrayData;
+    if (data.length > 0 && typeof data[0] === 'object' && !Array.isArray(data[0])) {
+      // Convert from contextual JSON to array format
+      arrayData = convertFromContextualJSON(data);
+    } else {
+      // Already in array format
+      arrayData = data;
     }
 
     await Excel.run(async (context) => {
@@ -202,7 +241,7 @@ async function insertData() {
           // Create new sheet and insert
           const newSheet = context.workbook.worksheets.add();
           newSheet.activate();
-          targetRange = newSheet.getRange('A1').getResizedRange(data.length - 1, data[0].length - 1);
+          targetRange = newSheet.getRange('A1').getResizedRange(arrayData.length - 1, arrayData[0].length - 1);
           break;
 
         case 'specific':
@@ -213,11 +252,11 @@ async function insertData() {
             return;
           }
           const activeSheet = context.workbook.worksheets.getActiveWorksheet();
-          targetRange = activeSheet.getRange(rangeAddr).getResizedRange(data.length - 1, data[0].length - 1);
+          targetRange = activeSheet.getRange(rangeAddr).getResizedRange(arrayData.length - 1, arrayData[0].length - 1);
           break;
       }
 
-      targetRange.values = data;
+      targetRange.values = arrayData;
 
       if (autoFormat) {
         // Format as table
