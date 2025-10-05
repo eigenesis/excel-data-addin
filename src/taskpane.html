@@ -302,21 +302,124 @@
         .section:nth-child(2) {
             animation-delay: 0.1s;
         }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            flex: 1;
+            max-width: 140px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: none;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: none;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Copy button */
+        .btn-secondary {
+            background: #48bb78;
+            box-shadow: 0 4px 6px rgba(72, 187, 120, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            box-shadow: 0 6px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .result-box {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .result-actions button {
+            flex: 1;
+        }
+
+        .auto-range-info {
+            background: #fff5e1;
+            border: 1px solid #ffd966;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            color: #856404;
+            margin-bottom: 12px;
+        }
+
+        .auto-range-info strong {
+            color: #735008;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Data Extract & Insert</h1>
         <p>Professional data management for Excel</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="extract">Extract</button>
+            <button class="tab-btn" data-tab="insert">Insert</button>
+        </div>
     </div>
 
     <div class="container">
-        <div class="section">
-            <div class="section-header">
-                <span class="section-icon">📤</span>
-                <span class="section-title">Extract Data</span>
-            </div>
-            <div class="section-body">
+        <!-- Extract Tab -->
+        <div id="extractTab" class="tab-content active">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-icon">📤</span>
+                    <span class="section-title">Extract Data</span>
+                </div>
+                <div class="section-body">
+                    <div id="autoRangeInfo" class="auto-range-info hidden">
+                        <strong>Auto-detected:</strong> <span id="detectedRange"></span>
+                    </div>
                 <div class="form-group">
                     <label>Select Source</label>
                     <div class="radio-grid">
@@ -355,14 +458,25 @@
                 </div>
 
                 <button id="extractBtn">Extract Data</button>
+
+                <div id="extractResult" class="hidden">
+                    <div class="result-box" id="extractedDataBox"></div>
+                    <div class="result-actions">
+                        <button id="copyBtn" class="btn-secondary">📋 Copy to Clipboard</button>
+                        <button id="goToInsertBtn">➡️ Go to Insert</button>
+                    </div>
+                </div>
             </div>
         </div>
+        </div>
 
-        <div class="section">
-            <div class="section-header">
-                <span class="section-icon">📥</span>
-                <span class="section-title">Insert Data</span>
-            </div>
+        <!-- Insert Tab -->
+        <div id="insertTab" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-icon">📥</span>
+                    <span class="section-title">Insert Data</span>
+                </div>
             <div class="section-body">
                 <div class="form-group">
                     <label>Data to Insert (JSON format)</label>

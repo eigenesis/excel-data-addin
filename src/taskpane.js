@@ -1,19 +1,30 @@
 /* global Excel, Office */
 
 let extractedData = null;
+let extractedJSON = null;
 
 Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', switchTab);
+    });
+
     // Extract section event handlers
     document.querySelectorAll('input[name="extractSource"]').forEach(radio => {
       radio.addEventListener('change', handleExtractSourceChange);
     });
 
     document.getElementById('extractBtn').addEventListener('click', extractData);
+    document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+    document.getElementById('goToInsertBtn').addEventListener('click', () => switchTab({target: {dataset: {tab: 'insert'}}}));
 
     // Insert section event handlers
     document.getElementById('insertLocation').addEventListener('change', handleInsertLocationChange);
     document.getElementById('insertBtn').addEventListener('click', insertData);
+
+    // Auto-detect range when "Range" option is selected
+    setupRangeAutoDetection();
 
     showOutput('Ready! Select an action above.');
   }
@@ -98,16 +109,16 @@ async function extractData() {
       extractedData = range.values;
 
       // Convert to contextual JSON with headers as keys
-      const contextualJSON = convertToContextualJSON(extractedData);
+      extractedJSON = convertToContextualJSON(extractedData);
 
-      const summary = `Extracted ${range.rowCount} rows x ${range.columnCount} columns from ${range.address}\n\n` +
-                     `Data preview:\n${JSON.stringify(contextualJSON.slice(0, 3), null, 2)}` +
-                     (contextualJSON.length > 3 ? '\n...(showing first 3 records)' : '');
-
-      showOutput(summary);
+      // Show result in extract tab
+      document.getElementById('extractedDataBox').textContent = JSON.stringify(extractedJSON, null, 2);
+      document.getElementById('extractResult').classList.remove('hidden');
 
       // Auto-populate insert textarea with contextual JSON
-      document.getElementById('insertData').value = JSON.stringify(contextualJSON, null, 2);
+      document.getElementById('insertData').value = JSON.stringify(extractedJSON, null, 2);
+
+      showOutput(`✓ Extracted ${range.rowCount} rows x ${range.columnCount} columns from ${range.address}`);
     });
 
   } catch (error) {
@@ -281,4 +292,68 @@ async function insertData() {
 
 function showOutput(message) {
   document.getElementById('output').textContent = message;
+}
+
+// Tab switching
+function switchTab(event) {
+  const tabName = event.target.dataset.tab;
+
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+
+  // Update tab content
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  document.getElementById(`${tabName}Tab`).classList.add('active');
+}
+
+// Copy extracted data to clipboard
+function copyToClipboard() {
+  const dataText = document.getElementById('insertData').value;
+
+  navigator.clipboard.writeText(dataText).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    btn.style.background = '#38a169';
+
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '';
+    }, 2000);
+  }).catch(err => {
+    showOutput(`Failed to copy: ${err.message}`);
+  });
+}
+
+// Auto-detect selected range
+function setupRangeAutoDetection() {
+  document.getElementById('opt-range').addEventListener('change', async () => {
+    if (document.getElementById('opt-range').checked) {
+      await detectSelectedRange();
+    }
+  });
+}
+
+async function detectSelectedRange() {
+  try {
+    await Excel.run(async (context) => {
+      const selectedRange = context.workbook.getSelectedRange();
+      selectedRange.load('address');
+      await context.sync();
+
+      // Auto-fill the range input
+      document.getElementById('rangeAddress').value = selectedRange.address.split('!')[1] || selectedRange.address;
+
+      // Show auto-detected info
+      document.getElementById('detectedRange').textContent = selectedRange.address;
+      document.getElementById('autoRangeInfo').classList.remove('hidden');
+    });
+  } catch (error) {
+    console.error('Could not detect range:', error);
+  }
 }
