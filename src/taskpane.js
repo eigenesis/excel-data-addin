@@ -26,6 +26,14 @@ Office.onReady((info) => {
     // Auto-detect range when "Range" option is selected
     setupRangeAutoDetection();
 
+    // Fraud detection event handlers
+    document.getElementById('fraudEnv').addEventListener('change', handleEnvChange);
+    document.getElementById('runFraudCheckBtn').addEventListener('click', runFraudDetection);
+    document.getElementById('clearSettingsBtn').addEventListener('click', clearFraudSettings);
+
+    // Load saved API settings
+    loadFraudSettings();
+
     showOutput('Ready! Select an action above.');
   }
 });
@@ -355,5 +363,163 @@ async function detectSelectedRange() {
     });
   } catch (error) {
     console.error('Could not detect range:', error);
+  }
+}
+// Fraud Detection Functions
+function handleEnvChange() {
+  const env = document.getElementById('fraudEnv').value;
+  const customEnvGroup = document.getElementById('customEnvGroup');
+  
+  if (env === 'custom') {
+    customEnvGroup.classList.remove('hidden');
+  } else {
+    customEnvGroup.classList.add('hidden');
+  }
+}
+
+function loadFraudSettings() {
+  const apiKey = localStorage.getItem('fraud_api_key');
+  const env = localStorage.getItem('fraud_env');
+  const customUrl = localStorage.getItem('fraud_custom_url');
+  
+  if (apiKey) document.getElementById('apiKey').value = apiKey;
+  if (env) document.getElementById('fraudEnv').value = env;
+  if (customUrl) document.getElementById('customEnvUrl').value = customUrl;
+  
+  handleEnvChange();
+}
+
+function clearFraudSettings() {
+  localStorage.removeItem('fraud_api_key');
+  localStorage.removeItem('fraud_env');
+  localStorage.removeItem('fraud_custom_url');
+  
+  document.getElementById('apiKey').value = '';
+  document.getElementById('fraudEnv').value = 'production';
+  document.getElementById('customEnvUrl').value = '';
+  handleEnvChange();
+  
+  showOutput('✓ Settings cleared');
+}
+
+async function runFraudDetection() {
+  try {
+    const apiKey = document.getElementById('apiKey').value;
+    if (!apiKey) {
+      showOutput('Error: Please enter an API key');
+      return;
+    }
+    
+    // Save settings
+    localStorage.setItem('fraud_api_key', apiKey);
+    localStorage.setItem('fraud_env', document.getElementById('fraudEnv').value);
+    localStorage.setItem('fraud_custom_url', document.getElementById('customEnvUrl').value);
+    
+    showOutput('🔄 Extracting current sheet data...');
+    
+    //Extract current sheet data
+    await Excel.run(async (context) => {
+      const currentSheet = context.workbook.worksheets.getActiveWorksheet();
+      const range = currentSheet.getUsedRange();
+      range.load('values, address, rowCount, columnCount');
+      await context.sync();
+      
+      const data = range.values;
+      const jsonData = convertToContextualJSON(data);
+      
+      showOutput(`🔄 Sending ${jsonData.length} records to fraud detection API...`);
+      
+      // Get API URL based on environment
+      const env = document.getElementById('fraudEnv').value;
+      let apiUrl;
+      
+      if (env === 'production') {
+        apiUrl = 'https://api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
+      } else if (env === 'dev') {
+        apiUrl = 'https://dev.api.airiadev.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
+      } else {
+        const customUrl = document.getElementById('customEnvUrl').value;
+        if (!customUrl) {
+          showOutput('Error: Please enter a custom API URL');
+          return;
+        }
+        apiUrl = `https://${customUrl}/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
+      }
+      
+      // Make API call
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'X-API-KEY': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userInput: JSON.stringify(jsonData),
+          asyncOutput: false
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      let fraudData;
+      
+      // Parse the API response
+      try {
+        fraudData = typeof result === 'string' ? JSON.parse(result) : result;
+      } catch (e) {
+        fraudData = result;
+      }
+      
+      showOutput('✓ Received fraud detection results. Updating sheet...');
+      
+      // Convert back to array format and insert
+      const arrayData = convertFromContextualJSON(fraudData);
+      
+      // Clear existing content and insert new data with fraud scores
+      range.clear();
+      const newRange = currentSheet.getRange('A1').getResizedRange(arrayData.length - 1, arrayData[0].length - 1);
+      newRange.values = arrayData;
+      
+      // Apply conditional formatting based on risk level
+      await applyRiskFormatting(context, currentSheet, fraudData);
+      
+      newRange.format.autofitColumns();
+      await context.sync();
+      
+      showOutput(`✓ Fraud detection complete! Updated ${fraudData.length} records with risk scores.`);
+    });
+    
+  } catch (error) {
+    showOutput(`Error: ${error.message}`);
+  }
+}
+
+async function applyRiskFormatting(context, sheet, fraudData) {
+  // Find the Risk Level and Fraud Score column indices
+  const headers = Object.keys(fraudData[0]);
+  const riskLevelIndex = headers.indexOf('Risk Level');
+  const fraudScoreIndex = headers.indexOf('Fraud Score');
+  
+  if (riskLevelIndex === -1) return;
+  
+  // Apply formatting row by row
+  for (let i = 0; i < fraudData.length; i++) {
+    const rowIndex = i + 2; // +2 because: +1 for header, +1 for 1-based indexing
+    const riskLevel = fraudData[i]['Risk Level'];
+    const fraudScore = fraudData[i]['Fraud Score'];
+    
+    const rowRange = sheet.getRange(`A${rowIndex}:ZZ${rowIndex}`);
+    
+    // Color code based on risk level and fraud score
+    if (riskLevel === 'HIGH' || fraudScore > 0.7) {
+      rowRange.format.fill.color = '#ffcccc'; // Light red
+    } else if (riskLevel === 'MEDIUM' || fraudScore > 0.3) {
+      rowRange.format.fill.color = '#ffe6cc'; // Light orange
+    } else if (riskLevel === 'LOW' && fraudScore === 0) {
+      rowRange.format.fill.color = '#e6ffe6'; // Light green
+    }
   }
 }
