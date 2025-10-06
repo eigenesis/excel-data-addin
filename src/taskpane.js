@@ -409,91 +409,133 @@ async function runFraudDetection() {
       showOutput('Error: Please enter an API key');
       return;
     }
-    
+
     // Save settings
     localStorage.setItem('fraud_api_key', apiKey);
     localStorage.setItem('fraud_env', document.getElementById('fraudEnv').value);
     localStorage.setItem('fraud_custom_url', document.getElementById('customEnvUrl').value);
-    
+
     showOutput('🔄 Extracting current sheet data...');
-    
+
     //Extract current sheet data
     await Excel.run(async (context) => {
       const currentSheet = context.workbook.worksheets.getActiveWorksheet();
       const range = currentSheet.getUsedRange();
       range.load('values, address, rowCount, columnCount');
       await context.sync();
-      
+
       const data = range.values;
       const jsonData = convertToContextualJSON(data);
-      
-      showOutput(`🔄 Sending ${jsonData.length} records to fraud detection API...`);
-      
+
+      showOutput(`🔄 Sending ${jsonData.length} records to fraud detection API...\n⏳ This may take 30-60 seconds...`);
+
       // Get API URL based on environment
       const env = document.getElementById('fraudEnv').value;
       let apiUrl;
-      
+
       if (env === 'production') {
         apiUrl = 'https://api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
       } else if (env === 'dev') {
         apiUrl = 'https://dev.api.airiadev.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
       } else {
-        const customUrl = document.getElementById('customEnvUrl').value;
-        if (!customUrl) {
-          showOutput('Error: Please enter a custom API URL');
+        const customEnv = document.getElementById('customEnvUrl').value.trim();
+        if (!customEnv) {
+          showOutput('Error: Please enter a custom environment name');
           return;
         }
-        apiUrl = `https://${customUrl}/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
+        // Format: demo -> demo.api.airiadev.ai
+        apiUrl = `https://${customEnv}.api.airiadev.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
       }
-      
-      // Make API call
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userInput: JSON.stringify(jsonData),
-          asyncOutput: false
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      let fraudData;
-      
-      // Parse the API response
+
+      showOutput(`🔄 Calling API: ${apiUrl}\n⏳ Please wait...`);
+
+      // Make API call with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
       try {
-        fraudData = typeof result === 'string' ? JSON.parse(result) : result;
-      } catch (e) {
-        fraudData = result;
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': apiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userInput: JSON.stringify(jsonData),
+            asyncOutput: false
+          }),
+          signal: controller.signal,
+          mode: 'cors'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API Error ${response.status}: ${errorText || response.statusText}`);
+        }
+
+        showOutput('🔄 Processing response...');
+
+        const result = await response.json();
+        let fraudData;
+
+        // Parse the API response - handle various response formats
+        if (typeof result === 'string') {
+          fraudData = JSON.parse(result);
+        } else if (result.output) {
+          fraudData = typeof result.output === 'string' ? JSON.parse(result.output) : result.output;
+        } else if (result.result) {
+          fraudData = typeof result.result === 'string' ? JSON.parse(result.result) : result.result;
+        } else {
+          fraudData = result;
+        }
+
+        if (!Array.isArray(fraudData) || fraudData.length === 0) {
+          throw new Error('API returned invalid or empty data');
+        }
+
+        showOutput('✓ Received fraud detection results. Updating sheet...');
+
+        // Convert back to array format and insert
+        const arrayData = convertFromContextualJSON(fraudData);
+
+        // Clear existing content and insert new data with fraud scores
+        range.clear();
+        const newRange = currentSheet.getRange('A1').getResizedRange(arrayData.length - 1, arrayData[0].length - 1);
+        newRange.values = arrayData;
+
+        // Apply conditional formatting based on risk level
+        await applyRiskFormatting(context, currentSheet, fraudData);
+
+        newRange.format.autofitColumns();
+        await context.sync();
+
+        showOutput(`✓ Fraud detection complete! Updated ${fraudData.length} records with risk scores.`);
+
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timeout - API took too long to respond (>2 minutes)');
+        }
+        throw fetchError;
       }
-      
-      showOutput('✓ Received fraud detection results. Updating sheet...');
-      
-      // Convert back to array format and insert
-      const arrayData = convertFromContextualJSON(fraudData);
-      
-      // Clear existing content and insert new data with fraud scores
-      range.clear();
-      const newRange = currentSheet.getRange('A1').getResizedRange(arrayData.length - 1, arrayData[0].length - 1);
-      newRange.values = arrayData;
-      
-      // Apply conditional formatting based on risk level
-      await applyRiskFormatting(context, currentSheet, fraudData);
-      
-      newRange.format.autofitColumns();
-      await context.sync();
-      
-      showOutput(`✓ Fraud detection complete! Updated ${fraudData.length} records with risk scores.`);
     });
-    
+
   } catch (error) {
-    showOutput(`Error: ${error.message}`);
+    let errorMsg = error.message;
+
+    // Provide helpful error messages
+    if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
+      errorMsg = 'Network Error: Unable to reach API. Possible causes:\n' +
+                 '1. CORS restrictions (API must allow requests from GitHub Pages)\n' +
+                 '2. Invalid API URL\n' +
+                 '3. Network connectivity issues\n' +
+                 '4. API server is down\n\n' +
+                 'Original error: ' + errorMsg;
+    }
+
+    showOutput(`❌ Error: ${errorMsg}`);
   }
 }
 
