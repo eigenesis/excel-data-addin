@@ -443,8 +443,8 @@ async function runFraudDetection() {
           showOutput('Error: Please enter a custom environment name');
           return;
         }
-        // Format: demo -> demo.api.airiadev.ai
-        apiUrl = `https://${customEnv}.api.airiadev.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
+        // Format: demo -> demo.api.airia.ai
+        apiUrl = `https://${customEnv}.api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
       }
 
       showOutput(`🔄 Calling API: ${apiUrl}\n⏳ Please wait...`);
