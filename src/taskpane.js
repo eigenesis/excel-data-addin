@@ -381,11 +381,13 @@ function loadFraudSettings() {
   const apiKey = localStorage.getItem('fraud_api_key');
   const env = localStorage.getItem('fraud_env');
   const customUrl = localStorage.getItem('fraud_custom_url');
-  
+  const proxyUrl = localStorage.getItem('fraud_proxy_url');
+
   if (apiKey) document.getElementById('apiKey').value = apiKey;
   if (env) document.getElementById('fraudEnv').value = env;
   if (customUrl) document.getElementById('customEnvUrl').value = customUrl;
-  
+  if (proxyUrl) document.getElementById('proxyUrl').value = proxyUrl;
+
   handleEnvChange();
 }
 
@@ -393,12 +395,14 @@ function clearFraudSettings() {
   localStorage.removeItem('fraud_api_key');
   localStorage.removeItem('fraud_env');
   localStorage.removeItem('fraud_custom_url');
-  
+  localStorage.removeItem('fraud_proxy_url');
+
   document.getElementById('apiKey').value = '';
   document.getElementById('fraudEnv').value = 'production';
   document.getElementById('customEnvUrl').value = '';
+  document.getElementById('proxyUrl').value = '';
   handleEnvChange();
-  
+
   showOutput('✓ Settings cleared');
 }
 
@@ -414,6 +418,7 @@ async function runFraudDetection() {
     localStorage.setItem('fraud_api_key', apiKey);
     localStorage.setItem('fraud_env', document.getElementById('fraudEnv').value);
     localStorage.setItem('fraud_custom_url', document.getElementById('customEnvUrl').value);
+    localStorage.setItem('fraud_proxy_url', document.getElementById('proxyUrl').value);
 
     showOutput('🔄 Extracting current sheet data...');
 
@@ -429,44 +434,77 @@ async function runFraudDetection() {
 
       showOutput(`🔄 Sending ${jsonData.length} records to fraud detection API...\n⏳ This may take 30-60 seconds...`);
 
-      // Get API URL based on environment
+      // Check if proxy URL is provided
+      const proxyUrl = document.getElementById('proxyUrl').value.trim();
       const env = document.getElementById('fraudEnv').value;
-      let apiUrl;
-
-      if (env === 'production') {
-        apiUrl = 'https://api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
-      } else if (env === 'dev') {
-        apiUrl = 'https://dev.api.airiadev.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
-      } else {
-        const customEnv = document.getElementById('customEnvUrl').value.trim();
-        if (!customEnv) {
-          showOutput('Error: Please enter a custom environment name');
-          return;
-        }
-        // Format: demo -> demo.api.airia.ai
-        apiUrl = `https://${customEnv}.api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
-      }
-
-      showOutput(`🔄 Calling API: ${apiUrl}\n⏳ Please wait...`);
 
       // Make API call with timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
+      let response;
+
       try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'X-API-KEY': apiKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            userInput: JSON.stringify(jsonData),
-            asyncOutput: false
-          }),
-          signal: controller.signal,
-          mode: 'cors'
-        });
+        if (proxyUrl) {
+          // Use Supabase Edge Function proxy
+          showOutput(`🔄 Using proxy: ${proxyUrl}\n⏳ Please wait...`);
+
+          let environment = env;
+          if (env === 'custom') {
+            environment = document.getElementById('customEnvUrl').value.trim();
+            if (!environment) {
+              showOutput('Error: Please enter a custom environment name');
+              return;
+            }
+          }
+
+          response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              environment: environment,
+              apiKey: apiKey,
+              data: jsonData
+            }),
+            signal: controller.signal
+          });
+
+        } else {
+          // Call API directly
+          let apiUrl;
+
+          if (env === 'production') {
+            apiUrl = 'https://api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
+          } else if (env === 'dev') {
+            apiUrl = 'https://dev.api.airiadev.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01';
+          } else {
+            const customEnv = document.getElementById('customEnvUrl').value.trim();
+            if (!customEnv) {
+              showOutput('Error: Please enter a custom environment name');
+              return;
+            }
+            // Format: demo -> demo.api.airia.ai
+            apiUrl = `https://${customEnv}.api.airia.ai/v2/PipelineExecution/18546128-a4a6-411b-8b5c-23b64beaee01`;
+          }
+
+          showOutput(`🔄 Calling API: ${apiUrl}\n⏳ Please wait...`);
+
+          response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'X-API-KEY': apiKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userInput: JSON.stringify(jsonData),
+              asyncOutput: false
+            }),
+            signal: controller.signal,
+            mode: 'cors'
+          });
+        }
 
         clearTimeout(timeoutId);
 

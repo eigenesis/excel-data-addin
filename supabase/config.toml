@@ -1,0 +1,8 @@
+# Supabase configuration file
+
+[api]
+enabled = true
+port = 54321
+
+[functions.fraud-proxy]
+verify_jwt = false
