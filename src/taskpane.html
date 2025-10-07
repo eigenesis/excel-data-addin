@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Data Extract & Insert</title>
+    <title>Ariicore Financial's Fraud Detector</title>
     <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,80 +15,83 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #ffffff;
             padding: 0;
             margin: 0;
-            color: #2d3748;
+            color: #1a1a1a;
             line-height: 1.6;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
             color: white;
-            padding: 14px 16px 10px;
+            padding: 20px 16px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
         }
 
         .header h1 {
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 2px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
         }
 
         .header p {
             font-size: 11px;
-            opacity: 0.9;
+            opacity: 0.95;
             font-weight: 400;
         }
 
         .container {
-            padding: 14px;
+            padding: 16px;
+            background: #fafafa;
         }
 
         .section {
             background: white;
             margin-bottom: 0;
             padding: 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
             overflow: hidden;
-            transition: box-shadow 0.3s ease;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
         }
 
         .section:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);
+            transform: translateY(-1px);
         }
 
         .section-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 12px 16px;
-            border-bottom: 2px solid #e2e8f0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+            padding: 14px 16px;
+            border-bottom: 1px solid #d1fae5;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .section-icon {
-            font-size: 20px;
+            font-size: 22px;
             line-height: 1;
         }
 
         .section-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1a202c;
-            letter-spacing: -0.3px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #065f46;
+            letter-spacing: -0.2px;
         }
 
         .section-body {
-            padding: 16px;
+            padding: 18px;
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .form-group:last-child {
@@ -97,11 +100,11 @@
 
         label {
             display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 12px;
-            color: #4a5568;
-            letter-spacing: -0.2px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            color: #374151;
+            letter-spacing: -0.1px;
         }
 
         .radio-grid {
@@ -125,26 +128,27 @@
             align-items: center;
             justify-content: center;
             padding: 12px;
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 500;
             font-size: 13px;
-            color: #4a5568;
+            color: #6b7280;
             margin: 0;
         }
 
         .radio-option input[type="radio"]:checked + label {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #667eea;
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            border-color: #10b981;
             color: white;
             font-weight: 600;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
         }
 
         .radio-option label:hover {
-            border-color: #667eea;
+            border-color: #10b981;
             transform: translateY(-1px);
         }
 
@@ -154,21 +158,21 @@
         textarea {
             width: 100%;
             padding: 12px 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
             font-size: 14px;
             font-family: inherit;
             transition: all 0.2s ease;
             background: white;
-            color: #2d3748;
+            color: #1f2937;
         }
 
         input[type="text"]:focus,
         select:focus,
         textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         textarea {
@@ -184,21 +188,21 @@
             align-items: center;
             gap: 8px;
             padding: 12px;
-            background: #f7fafc;
-            border-radius: 8px;
+            background: #f9fafb;
+            border-radius: 10px;
             cursor: pointer;
             transition: background 0.2s ease;
         }
 
         .checkbox-wrapper:hover {
-            background: #edf2f7;
+            background: #f0fdf4;
         }
 
         .checkbox-wrapper input[type="checkbox"] {
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: #667eea;
+            accent-color: #10b981;
         }
 
         .checkbox-wrapper label {
@@ -206,27 +210,27 @@
             font-weight: 500;
             font-size: 13px;
             cursor: pointer;
-            color: #2d3748;
+            color: #374151;
         }
 
         button {
             width: 100%;
             padding: 14px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
-            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            letter-spacing: 0.2px;
         }
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
         }
 
         button:active {
@@ -238,14 +242,14 @@
             margin-top: 20px;
             padding: 16px;
             border-radius: 12px;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #10b981;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 12px;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #2d3748;
+            color: #374151;
             max-height: 300px;
             overflow-y: auto;
         }
@@ -275,12 +279,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #667eea;
+            background: #10b981;
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
+            background: #059669;
         }
 
         /* Animation */
@@ -334,8 +338,9 @@
 
         .tab-btn.active {
             background: white;
-            color: #667eea;
+            color: #10b981;
             border-color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
         }
 
         .tab-content {
@@ -348,21 +353,20 @@
 
         /* Copy button */
         .btn-secondary {
-            background: #48bb78;
-            box-shadow: 0 4px 6px rgba(72, 187, 120, 0.3);
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
             margin-top: 10px;
         }
 
         .btn-secondary:hover {
-            background: #38a169;
-            box-shadow: 0 6px 12px rgba(72, 187, 120, 0.4);
+            box-shadow: 0 6px 16px rgba(6, 182, 212, 0.35);
         }
 
         .result-box {
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
             margin-top: 16px;
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 12px;
@@ -399,8 +403,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>Data Extract & Insert</h1>
-        <p>Professional data management for Excel</p>
+        <h1>Ariicore Financial's Fraud Detector for Excel</h1>
+        <p>Advanced fraud detection powered by AI</p>
 
         <div class="tabs">
             <button class="tab-btn active" data-tab="extract">Extract</button>

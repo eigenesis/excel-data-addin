@@ -321,13 +321,18 @@ function switchTab(event) {
 
 // Copy extracted data to clipboard
 function copyToClipboard() {
-  const dataText = document.getElementById('insertData').value;
+  const dataText = document.getElementById('extractedDataBox').textContent;
+
+  if (!dataText || dataText.trim() === '') {
+    showOutput('Error: No data to copy');
+    return;
+  }
 
   navigator.clipboard.writeText(dataText).then(() => {
     const btn = document.getElementById('copyBtn');
     const originalText = btn.textContent;
     btn.textContent = '✓ Copied!';
-    btn.style.background = '#38a169';
+    btn.style.background = 'linear-gradient(135deg, #059669 0%, #0891b2 100%)';
 
     setTimeout(() => {
       btn.textContent = originalText;
